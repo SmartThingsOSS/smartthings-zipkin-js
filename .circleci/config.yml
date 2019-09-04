@@ -1,0 +1,37 @@
+version: 2.1
+
+executors:
+    node:
+        docker:
+            - image: circleci/node:lts
+        working_directory: ~/repo
+
+commands:
+    setup-js:
+        description: "Setup JS enviornment"
+        steps:
+            - run: npm install
+    check:
+        description: "Run test and code coverage"
+        steps:
+            - run: npm run check
+
+jobs:
+    check:
+        executor: node
+        steps:
+            - checkout
+            - setup-js
+            - check
+            - save_cache:
+                key: build-cache-{{ .Branch }}-{{ .Environment.CIRCLE_SHA1 }}
+                paths:
+                    - "node_modules"
+
+workflows:
+    build:
+        jobs:
+            - check:
+                filters:
+                    tags:
+                        only: /.*/
